@@ -135,7 +135,7 @@ const SignUpPage = () => {
           type="submit"
           isLoading={isSubmitting}
           disabled={isSubmitting}
-          style={{ maxWidth: 300, margin: "0 auto" }}
+          style={{ maxWidth: 300, margin: "0 auto", width: "100%" }}
         >
           Sign Up
         </Button>
