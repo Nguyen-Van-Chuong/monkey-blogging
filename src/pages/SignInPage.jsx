@@ -1,9 +1,8 @@
 import { useAuth } from "contexts/auth-context";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { toast } from "react-toastify";
 
 import AuthenticationPage from "./AuthenticationPage";
 import { useForm } from "react-hook-form";
@@ -11,9 +10,9 @@ import { Field } from "components/field";
 import { Label } from "components/label";
 import { Input } from "components/input";
 import { Button } from "components/button";
-import { IconEyeClose, IconEyeOpen } from "components/icon";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "firebase-app/firebase-config";
+import InputPasswordToggle from "components/input/InputPasswordToggle";
 const schema = yup.object({
   email: yup
     .string()
@@ -32,8 +31,7 @@ const SignInPage = () => {
     control,
     formState: { isSubmitting, errors, isValid },
   } = useForm({ mode: "onChange", resolver: yupResolver(schema) });
-  // State
-  const [togglePassword, setTogglePassword] = useState(false);
+
   // Context
   const { userInfo } = useAuth();
   // Effect
@@ -68,22 +66,7 @@ const SignInPage = () => {
         <Field>
           <Label htmlFor="password">Password</Label>
 
-          <Input
-            type={togglePassword === true ? "text" : "password"}
-            name="password"
-            placeholder="Enter your password"
-            control={control}
-          >
-            {togglePassword ? (
-              <IconEyeClose
-                onClick={() => setTogglePassword(false)}
-              ></IconEyeClose>
-            ) : (
-              <IconEyeOpen
-                onClick={() => setTogglePassword(true)}
-              ></IconEyeOpen>
-            )}
-          </Input>
+          <InputPasswordToggle control={control}></InputPasswordToggle>
         </Field>
         <div className="have-account">
           You have not had an account?{" "}
@@ -93,7 +76,7 @@ const SignInPage = () => {
           type="submit"
           isLoading={isSubmitting}
           disabled={isSubmitting}
-          style={{ maxWidth: 300, margin: "0 auto", width: "100%" }}
+          className="w-full max-w-[300px] mx-auto"
         >
           Sign In
         </Button>

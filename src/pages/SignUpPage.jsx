@@ -1,8 +1,6 @@
-import styled from "styled-components";
 import { Label } from "components/label";
 
 import { useForm } from "react-hook-form";
-import { IconEyeClose, IconEyeOpen } from "components/icon";
 import { Field } from "components/field";
 import { useEffect, useState } from "react";
 import { Button } from "components/button";
@@ -15,6 +13,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { addDoc, collection } from "firebase/firestore";
 import { Input } from "components/input";
 import AuthenticationPage from "./AuthenticationPage";
+import InputPasswordToggle from "components/input/InputPasswordToggle";
 
 const schema = yup.object({
   fullname: yup.string().required("Please enter your fullname"),
@@ -65,7 +64,6 @@ const SignUpPage = () => {
     //   }, 5000);
     // });
   };
-  const [togglePassword, setTogglePassword] = useState(false);
 
   useEffect(() => {
     const arrErrors = Object.values(errors);
@@ -111,22 +109,7 @@ const SignUpPage = () => {
         <Field>
           <Label htmlFor="password">Password</Label>
 
-          <Input
-            type={togglePassword === true ? "text" : "password"}
-            name="password"
-            placeholder="Enter your password"
-            control={control}
-          >
-            {togglePassword ? (
-              <IconEyeClose
-                onClick={() => setTogglePassword(false)}
-              ></IconEyeClose>
-            ) : (
-              <IconEyeOpen
-                onClick={() => setTogglePassword(true)}
-              ></IconEyeOpen>
-            )}
-          </Input>
+          <InputPasswordToggle control={control}></InputPasswordToggle>
         </Field>
         <div className="have-account">
           You alraedy have an account? <NavLink to={"/sign-in"}>Login</NavLink>
@@ -135,7 +118,7 @@ const SignUpPage = () => {
           type="submit"
           isLoading={isSubmitting}
           disabled={isSubmitting}
-          style={{ maxWidth: 300, margin: "0 auto", width: "100%" }}
+          className="w-full max-w-[300px] mx-auto"
         >
           Sign Up
         </Button>
