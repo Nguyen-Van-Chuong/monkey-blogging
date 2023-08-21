@@ -6,25 +6,80 @@ import { Input } from "components/input";
 import { Label } from "components/label";
 import React from "react";
 import { useForm } from "react-hook-form";
+import slugify from "slugify";
 import styled from "styled-components";
+import { postStatus } from "utils/constants";
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
+const storage = getStorage();
 const PostAddNewStyles = styled.div``;
 
 const PostAddNew = () => {
-  const { control, watch, setValue } = useForm({
+  const { control, watch, setValue, handleSubmit } = useForm({
     mode: "onChange",
     defaultValues: {
-      status: "",
+      title: "",
+      slug: "",
+      status: 2,
       category: "",
     },
   });
   const watchStatus = watch("status");
   const watchCategory = watch("category");
-  console.log("PostAddNew ~ watchCategory", watchCategory);
+  const addPostHandler = async (values) => {
+    const cloneValues = { ...values };
+
+    cloneValues.slug = slugify(values.slug || values.title);
+    cloneValues.status = Number(values.status);
+    handleUploadImage(cloneValues.image);
+  };
+  const handleUploadImage = (file) => {
+    const storageRef = ref(storage, "images/" + file.name);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        console.log("Upload is " + progress + "% done");
+        switch (snapshot.state) {
+          case "paused":
+            console.log("Upload is paused");
+            break;
+          case "running":
+            console.log("Upload is running");
+            break;
+          default:
+            console.log("Nothing All");
+        }
+      },
+      (error) => {
+        console.log(error);
+      },
+      () => {
+        // Upload completed successfully, now we can get the download URL
+        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+          console.log("File available at", downloadURL);
+        });
+      }
+    );
+  };
+
+  const onSelectImage = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setValue("image", file);
+  };
   return (
     <PostAddNewStyles>
       <h1 className="dashboard-heading">Add new post</h1>
-      <form>
-        <div className="grid grid-cols-2 gap-x-10 mb-10">
+      <form onSubmit={handleSubmit(addPostHandler)}>
+        <div className="grid grid-cols-2 mb-10 gap-x-10">
           <Field>
             <Label>Title</Label>
             <Input
@@ -42,34 +97,38 @@ const PostAddNew = () => {
             ></Input>
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-x-10 mb-10">
+        <div className="grid grid-cols-2 mb-10 gap-x-10">
+          <Field>
+            <Label>Image</Label>
+            <input type="file" name="image" onChange={onSelectImage} />
+          </Field>
           <Field>
             <Label>Status</Label>
             <div className="flex items-center gap-x-5">
               <Radio
                 name="status"
                 control={control}
-                checked={watchStatus === "approved"}
+                checked={Number(watchStatus) === postStatus.APPROVED}
                 onClick={() => setValue("status", "approved")}
-                value="approved"
+                value={postStatus.APPROVED}
               >
                 Approved
               </Radio>
               <Radio
                 name="status"
                 control={control}
-                checked={watchStatus === "pending"}
+                checked={Number(watchStatus) === postStatus.PENDING}
                 onClick={() => setValue("status", "pending")}
-                value="pending"
+                value={postStatus.PENDING}
               >
                 Pending
               </Radio>
               <Radio
                 name="status"
                 control={control}
-                checked={watchStatus === "reject"}
+                checked={Number(watchStatus) === postStatus.REJECTED}
                 onClick={() => setValue("status", "reject")}
-                value="reject"
+                value={postStatus.REJECTED}
               >
                 Reject
               </Radio>
@@ -80,7 +139,7 @@ const PostAddNew = () => {
             <Input control={control} placeholder="Find the author"></Input>
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-x-10 mb-10">
+        <div className="grid grid-cols-2 mb-10 gap-x-10">
           <Field>
             <Label>Category</Label>
             <Dropdown>
