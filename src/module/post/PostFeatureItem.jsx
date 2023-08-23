@@ -55,7 +55,6 @@ const PostFeatureItemStyles = styled.div`
   }
 `;
 const PostFeatureItem = ({ data }) => {
-  console.log(data);
   const [user, setUser] = useState({});
   const [category, setCategory] = useState({});
   useEffect(() => {
@@ -80,10 +79,10 @@ const PostFeatureItem = ({ data }) => {
     fetch();
   }, [data.categoryId]);
   if (!data || !data.id) return null;
-  // const date = data?.createdAt?.seconds
-  //   ? new Date(data?.createdAt?.seconds * 1000)
-  //   : new Date();
-  // const formatDate = new Date(date).toLocaleDateString("vi-VI");
+  const date = data?.createdAt?.seconds
+    ? new Date(data?.createdAt?.seconds * 1000)
+    : new Date();
+  const formatDate = new Date(date).toLocaleDateString("vi-VI");
   // const { category, user } = data;
 
   return (
@@ -97,9 +96,9 @@ const PostFeatureItem = ({ data }) => {
             <PostCategory to={category.slug}>{category.name}</PostCategory>
           )}
           <PostMeta
-            to={slugify(user?.username || "", { lower: true })}
+            to={slugify(user?.fullname || "", { lower: true })}
             authorName={user?.fullname}
-            // date={formatDate}
+            date={formatDate}
           ></PostMeta>
         </div>
         <PostTitle to={data.slug} size="big">

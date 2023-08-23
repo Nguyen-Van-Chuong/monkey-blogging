@@ -10,7 +10,14 @@ import slugify from "slugify";
 import styled from "styled-components";
 import { postStatus } from "utils/constants";
 import ImageUpload from "components/image/ImageUpload";
-import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  getDocs,
+  query,
+  where,
+  serverTimestamp,
+} from "firebase/firestore";
 import { db } from "firebase-app/firebase-config";
 import useFirebaseImage from "hooks/useFirebaseImage";
 import Toggle from "toggle/Toggle";
@@ -36,31 +43,46 @@ const PostAddNew = () => {
   // const watchCategory = watch("category");
   const watchHot = watch("hot");
   // USEHOOK
-  const { handleDeleteImage, handleSelectImage, image, progress } =
-    useFirebaseImage(setValue, getValues);
+  const {
+    handleDeleteImage,
+    handleSelectImage,
+    image,
+    progress,
+    handleResetUpload,
+  } = useFirebaseImage(setValue, getValues);
   const [categories, setCategories] = useState([]);
   const [selectCategory, setSelectCategory] = useState("");
+  const [loading, setLoading] = useState(false);
   const addPostHandler = async (values) => {
-    const cloneValues = { ...values };
+    setLoading(true);
+    try {
+      const cloneValues = { ...values };
 
-    cloneValues.slug = slugify(values.slug || values.title, { lower: true });
-    cloneValues.status = Number(values.status);
-    const colRef = collection(db, "posts");
-    await addDoc(colRef, {
-      ...cloneValues,
-      image,
-      userId: userInfo.uid,
-    });
-    toast.success("Create new post successfully");
-    reset({
-      title: "",
-      slug: "",
-      status: 2,
-      categoryId: "",
-      hot: false,
-      image: "",
-    });
-    setSelectCategory({});
+      cloneValues.slug = slugify(values.slug || values.title, { lower: true });
+      cloneValues.status = Number(values.status);
+      const colRef = collection(db, "posts");
+      await addDoc(colRef, {
+        ...cloneValues,
+        image,
+        userId: userInfo.uid,
+        createdAt: serverTimestamp(),
+      });
+      toast.success("Create new post successfully");
+      reset({
+        title: "",
+        slug: "",
+        status: 2,
+        categoryId: "",
+        hot: false,
+        image: "",
+      });
+      handleResetUpload();
+      setSelectCategory({});
+    } catch (error) {
+      setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Useeffect
@@ -77,6 +99,9 @@ const PostAddNew = () => {
       setCategories(result);
     }
     getData();
+  }, []);
+  useEffect(() => {
+    document.title = "Mokey blogging - add new post";
   }, []);
   const handleClickOption = (item) => {
     setValue("categoryId", item.id);
@@ -187,7 +212,12 @@ const PostAddNew = () => {
             </div>
           </Field>
         </div>
-        <Button type="submit" className="mx-auto">
+        <Button
+          type="submit"
+          className="mx-auto w-[250px]"
+          isLoading={loading}
+          disablede={loading}
+        >
           Add new post
         </Button>
       </form>

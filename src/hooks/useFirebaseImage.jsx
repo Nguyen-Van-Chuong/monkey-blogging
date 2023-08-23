@@ -68,10 +68,15 @@ export default function useFirebaseImage(setValue, getValues) {
         console.log("object");
       });
   };
+  const handleResetUpload = () => {
+    setImage("");
+    setProgress(0);
+  };
   return {
     image,
     progress,
     handleSelectImage,
+    handleResetUpload,
     handleDeleteImage,
   };
 }
