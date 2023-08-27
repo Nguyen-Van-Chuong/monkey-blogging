@@ -14,6 +14,7 @@ import UserManage from "module/user/UserManage";
 import UserAddNew from "module/user/UserAddNew";
 import CategoryManage from "module/category/CategoryManage";
 import CategoryUpdate from "module/category/CategoryUpdate";
+import UserProfile from "module/user/UserProfile";
 
 function App() {
   return (
@@ -48,6 +49,10 @@ function App() {
             <Route
               path="/manage/user"
               element={<UserManage></UserManage>}
+            ></Route>
+            <Route
+              path="/manage/profile"
+              element={<UserProfile></UserProfile>}
             ></Route>
             <Route
               path="/manage/add-user"

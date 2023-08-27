@@ -13,6 +13,7 @@ const TableStyles = styled.div`
   th,
   td {
     vertical-align: middle;
+    white-space: nowrap;
   }
   th {
     padding: 20px 30px;
@@ -28,7 +29,7 @@ const TableStyles = styled.div`
 const Table = ({ children }) => {
   return (
     <TableStyles>
-      <table>{children}</table>
+      <table> {children} </table>{" "}
     </TableStyles>
   );
 };
