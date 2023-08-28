@@ -21,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { categoryStatus } from "utils/constants";
 
-const CATEGORY_PER_PAGE = 10;
+const CATEGORY_PER_PAGE = 1;
 
 const CategoryManage = () => {
   const [categoryList, setCategoryList] = useState([]);
@@ -29,7 +29,9 @@ const CategoryManage = () => {
   const [lastDoc, setlastDoc] = useState();
   const [total, setTotal] = useState(0);
   const navigate = useNavigate();
-
+  useEffect(() => {
+    document.title = "Mokey blogging - Category";
+  }, []);
   useEffect(() => {
     async function fetchData() {
       const colRef = collection(db, "categories");
@@ -112,13 +114,20 @@ const CategoryManage = () => {
         title="Categories"
         desc="Manage your category"
       ></DashboardHeading>
-      <div className="flex justify-end mb-10">
+      <div className="flex flex-col justify-end mb-10">
         <input
           type="text"
           placeholder="Search category ..."
           className="px-5 py-4 border border-gray-300 rounded-lg"
           onChange={handleInputFilter}
         />
+        <Button
+          kind="primary"
+          className="mt-10 ml-auto"
+          to="/manage/add-category"
+        >
+          Add new category
+        </Button>
       </div>
       <Table>
         <thead>

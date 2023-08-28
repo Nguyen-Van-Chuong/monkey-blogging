@@ -70,6 +70,7 @@ Button.propTypes = {
   type: PropTypes.oneOf(["button", "submit"]),
   isLoading: PropTypes.bool,
   onClick: PropTypes.func,
+  to: PropTypes.string,
   children: PropTypes.node,
   kind: PropTypes.oneOf(["primary", "secondary"]),
 };
