@@ -122,7 +122,7 @@ const CategoryManage = () => {
           onChange={handleInputFilter}
         />
         <Button
-          kind="primary"
+          kind="ghost"
           className="mt-10 ml-auto"
           to="/manage/add-category"
         >

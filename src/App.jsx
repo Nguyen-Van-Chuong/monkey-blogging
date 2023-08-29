@@ -1,19 +1,19 @@
-import { Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/auth-context";
-import SignUpPage from "./pages/SignUpPage";
-import SignInPage from "pages/SignInPage";
-import HomePage from "pages/HomePage";
-import NotFoundPage from "pages/NotFoundPage";
-import PostDetailsPage from "pages/PostDetailsPage";
-import DashboardLayout from "module/dashboard/DashboardLayout";
-import DashboardPage from "pages/DashboardPage";
-import PostManage from "module/post/PostManage";
-import PostAddNew from "module/post/PostAddNew";
+import { Route, Routes } from "react-router-dom";
 import CategoryAddNew from "module/category/CategoryAddNew";
-import UserManage from "module/user/UserManage";
-import UserAddNew from "module/user/UserAddNew";
 import CategoryManage from "module/category/CategoryManage";
 import CategoryUpdate from "module/category/CategoryUpdate";
+import DashboardLayout from "module/dashboard/DashboardLayout";
+import DashboardPage from "pages/DashboardPage";
+import HomePage from "pages/HomePage";
+import NotFoundPage from "pages/NotFoundPage";
+import PostAddNew from "module/post/PostAddNew";
+import PostDetailsPage from "pages/PostDetailsPage";
+import PostManage from "module/post/PostManage";
+import SignInPage from "pages/SignInPage";
+import SignUpPage from "./pages/SignUpPage";
+import UserAddNew from "module/user/UserAddNew";
+import UserManage from "module/user/UserManage";
 import UserProfile from "module/user/UserProfile";
 import UserUpdate from "module/user/UserUpdate";
 
@@ -66,6 +66,10 @@ function App() {
             <Route
               path="/manage/add-post"
               element={<PostAddNew></PostAddNew>}
+            ></Route>
+            <Route
+              path="/manage/post"
+              element={<PostManage></PostManage>}
             ></Route>
           </Route>
         </Routes>

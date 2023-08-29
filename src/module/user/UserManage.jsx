@@ -26,7 +26,7 @@ const UserManage = () => {
           className="px-5 py-4 mb-10 border border-gray-300 rounded-lg"
           onChange={handleInputFilter}
         />
-        <Button kind="primary" className="ml-auto" to="/manage/add-user">
+        <Button kind="ghost" className="ml-auto" to="/manage/add-user">
           Add new user
         </Button>
       </div>

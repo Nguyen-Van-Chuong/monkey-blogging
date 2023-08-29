@@ -1,40 +1,44 @@
 import { Button } from "components/button";
-import { Checkbox, Radio } from "components/checkbox";
+import { db } from "firebase-app/firebase-config";
 import { Dropdown } from "components/dropdown";
 import { Field } from "components/field";
 import { Input } from "components/input";
 import { Label } from "components/label";
-import React, { useState } from "react";
+import { postStatus } from "utils/constants";
+import { Radio } from "components/checkbox";
+import { toast } from "react-toastify";
+import { useAuth } from "contexts/auth-context";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import ImageUpload from "components/image/ImageUpload";
+import React, { useState } from "react";
 import slugify from "slugify";
 import styled from "styled-components";
-import { postStatus } from "utils/constants";
-import ImageUpload from "components/image/ImageUpload";
+import Toggle from "toggle/Toggle";
+import useFirebaseImage from "hooks/useFirebaseImage";
 import {
-  addDoc,
   collection,
   getDocs,
   query,
   where,
+  doc,
+  getDoc,
+  addDoc,
   serverTimestamp,
 } from "firebase/firestore";
-import { db } from "firebase-app/firebase-config";
-import useFirebaseImage from "hooks/useFirebaseImage";
-import Toggle from "toggle/Toggle";
-import { useEffect } from "react";
-import { useAuth } from "contexts/auth-context";
-import { toast } from "react-toastify";
 const PostAddNewStyles = styled.div``;
 
 const PostAddNew = () => {
   const { userInfo } = useAuth();
+
   const { control, watch, setValue, handleSubmit, getValues, reset } = useForm({
     mode: "onChange",
     defaultValues: {
       title: "",
       slug: "",
       status: 2,
-      categoryId: "",
+      category: {},
+      user: {},
       hot: false,
       image: "",
     },
@@ -53,18 +57,18 @@ const PostAddNew = () => {
   const [categories, setCategories] = useState([]);
   const [selectCategory, setSelectCategory] = useState("");
   const [loading, setLoading] = useState(false);
+  const [userDetails, setUserDetails] = useState({});
+
   const addPostHandler = async (values) => {
     setLoading(true);
     try {
       const cloneValues = { ...values };
-
       cloneValues.slug = slugify(values.slug || values.title, { lower: true });
       cloneValues.status = Number(values.status);
       const colRef = collection(db, "posts");
       await addDoc(colRef, {
         ...cloneValues,
         image,
-        userId: userInfo.uid,
         createdAt: serverTimestamp(),
       });
       toast.success("Create new post successfully");
@@ -72,9 +76,10 @@ const PostAddNew = () => {
         title: "",
         slug: "",
         status: 2,
-        categoryId: "",
+        category: {},
         hot: false,
         image: "",
+        user: {},
       });
       handleResetUpload();
       setSelectCategory({});
@@ -101,10 +106,34 @@ const PostAddNew = () => {
     getData();
   }, []);
   useEffect(() => {
+    async function fetchUserData() {
+      if (!userInfo.email) return;
+      const q = query(
+        collection(db, "users"),
+        where("email", "==", userInfo.email)
+      );
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        console.log(doc.data());
+        setValue("user", {
+          id: doc.id,
+          ...doc.data(),
+        });
+      });
+    }
+    fetchUserData();
+  }, [userInfo.email]);
+  useEffect(() => {
     document.title = "Mokey blogging - add new post";
   }, []);
-  const handleClickOption = (item) => {
-    setValue("categoryId", item.id);
+  const handleClickOption = async (item) => {
+    const colRef = doc(db, "categories", item.id);
+    const docData = await getDoc(colRef);
+    setValue("category", {
+      id: docData.id,
+      ...docData.data(),
+    });
+
     setSelectCategory(item);
   };
   return (
