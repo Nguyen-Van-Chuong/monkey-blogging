@@ -90,7 +90,6 @@ const UserTable = ({ filter }) => {
     }
   };
   const handleDeleteUser = (user) => {
-    console.log(user);
     const colRef = doc(db, "users", user.id);
 
     Swal.fire({

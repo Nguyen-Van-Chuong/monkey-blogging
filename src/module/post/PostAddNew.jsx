@@ -26,6 +26,7 @@ import {
   addDoc,
   serverTimestamp,
 } from "firebase/firestore";
+import DashboardHeading from "module/dashboard/DashboardHeading";
 const PostAddNewStyles = styled.div``;
 
 const PostAddNew = () => {
@@ -138,7 +139,7 @@ const PostAddNew = () => {
   };
   return (
     <PostAddNewStyles>
-      <h1 className="dashboard-heading">Add new post</h1>
+      <DashboardHeading title="New post" desc="Add new post"></DashboardHeading>
       <form onSubmit={handleSubmit(addPostHandler)}>
         <div className="grid grid-cols-2 mb-10 gap-x-10">
           <Field>

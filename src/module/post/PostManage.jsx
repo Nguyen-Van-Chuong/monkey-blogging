@@ -1,4 +1,6 @@
 import { ActionDelete, ActionEdit, ActionView } from "components/action";
+import { Button } from "components/button";
+import { LabelStatus } from "components/label";
 import { Pagination } from "components/pagination";
 import { Table } from "components/table";
 import { db } from "firebase-app/firebase-config";
@@ -10,13 +12,16 @@ import {
   limit,
   onSnapshot,
   query,
+  startAfter,
   where,
 } from "firebase/firestore";
+import { debounce } from "lodash";
 import { useEffect } from "react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-const POST_PER_PAGE = 10;
+import { postStatus } from "utils/constants";
+const POST_PER_PAGE = 1;
 const PostManage = () => {
   const [postList, setPostList] = useState([]);
   console.log("🚀 --> PostManage --> postList:", postList);
@@ -34,8 +39,8 @@ const PostManage = () => {
       const newRef = filter
         ? query(
             colRef,
-            where("name", ">=", filter),
-            where("name", "<=", filter + "utf8")
+            where("title", ">=", filter),
+            where("title", "<=", filter + "utf8")
           )
         : query(colRef, limit(POST_PER_PAGE));
 
@@ -78,6 +83,49 @@ const PostManage = () => {
       }
     });
   }
+  const renderPostStatus = (status) => {
+    switch (status) {
+      case postStatus.APPROVED:
+        return <LabelStatus type="success">Approved</LabelStatus>;
+        break;
+      case postStatus.PENDING:
+        return <LabelStatus type="warning">Pending</LabelStatus>;
+        break;
+      case postStatus.REJECTED:
+        return <LabelStatus type="danger">Rejected</LabelStatus>;
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const handleSearchPost = debounce((e) => {
+    setFilter(e.target.value);
+  });
+  const handleLoadMorePost = async () => {
+    const next = query(
+      collection(db, "posts"),
+      startAfter(lastDoc),
+      limit(POST_PER_PAGE)
+    );
+    const documentSnapshots = await getDocs(next);
+    const lastVisible =
+      documentSnapshots.docs[documentSnapshots.docs.length - 1];
+    setlastDoc(lastVisible);
+
+    onSnapshot(next, (snapshot) => {
+      let results = [];
+
+      snapshot.forEach((doc) => {
+        results.push({
+          id: doc.id,
+          ...doc.data(),
+        });
+      });
+      setPostList([...postList, ...results]);
+    });
+  };
 
   return (
     <div>
@@ -88,6 +136,7 @@ const PostManage = () => {
             type="text"
             className="w-full p-4 border border-gray-300 border-solid rounded-lg"
             placeholder="Search post..."
+            onChange={handleSearchPost}
           />
         </div>
       </div>
@@ -99,6 +148,7 @@ const PostManage = () => {
             <th>Post</th>
             <th>Category</th>
             <th>Author</th>
+            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -120,8 +170,10 @@ const PostManage = () => {
                         alt={post.image_name}
                         className="w-[66px] h-[55px] rounded object-cover"
                       />
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{post?.title}</h3>
+                      <div className="flex-1 whitespace-pre-wrap">
+                        <h3 className="font-semibold max-w-[300px]">
+                          {post?.title}
+                        </h3>
                         <time className="text-sm text-gray-500">
                           Date: {formatDate}
                         </time>
@@ -134,12 +186,17 @@ const PostManage = () => {
                   <td>
                     <span className="text-gray-500">{post.user?.fullname}</span>
                   </td>
+                  <td>{renderPostStatus(post.status)}</td>
                   <td>
                     <div className="flex items-center text-gray-500 gap-x-3">
                       <ActionView
                         onClick={() => navigate(`/${post.slug}`)}
                       ></ActionView>
-                      <ActionEdit></ActionEdit>
+                      <ActionEdit
+                        onClick={() =>
+                          navigate(`/manage/update-post?id=${post.id}`)
+                        }
+                      ></ActionEdit>
                       <ActionDelete
                         onClick={() => handleDeletePost(post.id)}
                       ></ActionDelete>
@@ -150,6 +207,13 @@ const PostManage = () => {
             })}
         </tbody>
       </Table>
+      <div className="mt-10">
+        {total > postList.length && (
+          <Button className="mx-auto" onClick={handleLoadMorePost}>
+            Load more
+          </Button>
+        )}
+      </div>
       <div className="mt-10">
         <Pagination></Pagination>
       </div>
