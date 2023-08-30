@@ -4,6 +4,7 @@ import { Field, FieldCheckboxes } from "components/field";
 import ImageUpload from "components/image/ImageUpload";
 import { Input } from "components/input";
 import { Label } from "components/label";
+import { Textarea } from "components/textarea";
 import { db } from "firebase-app/firebase-config";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import useFirebaseImage from "hooks/useFirebaseImage";
@@ -54,14 +55,8 @@ const UserUpdate = () => {
   const [params] = useSearchParams();
   const userId = params.get("id");
   // USEHOOK
-  const {
-    handleDeleteImage,
-    handleSelectImage,
-    setImage,
-    image,
-    progress,
-    handleResetUpload,
-  } = useFirebaseImage(setValue, getValues, imageName, deleteAvatar);
+  const { handleDeleteImage, handleSelectImage, setImage, image, progress } =
+    useFirebaseImage(setValue, getValues, imageName, deleteAvatar);
   //   USEEFFECT
   useEffect(() => {
     if (!userId) return;
@@ -77,6 +72,7 @@ const UserUpdate = () => {
   }, [imageUrl, setImage]);
   //   HANDLE
   const handleUpdateUser = async (values) => {
+    if (!isValid) return;
     try {
       const colRef = doc(db, "users", userId);
       await updateDoc(colRef, {
@@ -140,6 +136,7 @@ const UserUpdate = () => {
               name="password"
               placeholder="Enter your password"
               control={control}
+              // hasIcon={true}
               type="password"
             ></Input>
           </Field>
@@ -210,6 +207,12 @@ const UserUpdate = () => {
                 User
               </Radio>
             </FieldCheckboxes>
+          </Field>
+        </div>
+        <div className="form-layout">
+          <Field>
+            <Label>Description</Label>
+            <Textarea control={control} name="description"></Textarea>
           </Field>
         </div>
         <Button

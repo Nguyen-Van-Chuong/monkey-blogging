@@ -1,18 +1,25 @@
+import "react-quill/dist/quill.snow.css";
 import { Button } from "components/button";
 import { db } from "firebase-app/firebase-config";
 import { Dropdown } from "components/dropdown";
 import { Field } from "components/field";
+import { imgbbAPI } from "config/apiConfig";
 import { Input } from "components/input";
 import { Label } from "components/label";
 import { postStatus } from "utils/constants";
 import { Radio } from "components/checkbox";
-import { useEffect } from "react";
+import { toast } from "react-toastify";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
+import axios from "axios";
 import DashboardHeading from "module/dashboard/DashboardHeading";
 import ImageUpload from "components/image/ImageUpload";
 import React from "react";
+import ReactQuill, { Quill } from "react-quill";
+import slugify from "slugify";
+import Swal from "sweetalert2";
 import Toggle from "toggle/Toggle";
 import useFirebaseImage from "hooks/useFirebaseImage";
 import {
@@ -24,36 +31,40 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
+import ImageUploader from "quill-image-uploader";
+Quill.register("modules/imageUploader", ImageUploader);
 
 const PostUpdate = () => {
-  const { handleSubmit, control, setValue, getValues, watch, reset } = useForm({
+  const {
+    handleSubmit,
+    control,
+    setValue,
+    getValues,
+    watch,
+    reset,
+    formState: { isValid, isSubmitting },
+  } = useForm({
     mode: "onChange",
-    defaultValues: {
-      title: "",
-      slug: "",
-      status: 2,
-      category: {},
-      user: {},
-      hot: false,
-      image: "",
-    },
   });
   const [params] = useSearchParams();
   const postId = params.get("id");
-  const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [selectCategory, setSelectCategory] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [content, setContent] = useState("");
   const watchStatus = watch("status");
   const watchHot = watch("hot");
   const imageUrl = getValues("image");
   const imageName = getValues("image_name");
+
   const deletePostImage = async () => {
     const colRef = doc(db, "posts", postId);
     await updateDoc(colRef, {
       avatar: "",
     });
   };
+  // USEHOOK
+  const { handleDeleteImage, handleSelectImage, setImage, image, progress } =
+    useFirebaseImage(setValue, getValues, imageName, deletePostImage);
   // USEFFECT
   useEffect(() => {
     if (!postId) return;
@@ -61,8 +72,10 @@ const PostUpdate = () => {
       const colRef = doc(db, "posts", postId);
       const singleDoc = await getDoc(colRef);
       if (singleDoc) {
-        reset(singleDoc.data());
+        reset(singleDoc && singleDoc.data());
         setSelectCategory(singleDoc.data()?.category || "");
+        setSelectCategory(singleDoc.data()?.category || "");
+        setContent(singleDoc.data()?.content || "");
       }
     }
     fetchData();
@@ -73,7 +86,6 @@ const PostUpdate = () => {
       const q = query(colRef, where("status", "==", 1));
       const querySnapshot = await getDocs(q);
       const result = [];
-
       querySnapshot.forEach((doc) => {
         result.push({ id: doc.id, ...doc.data() });
       });
@@ -81,17 +93,58 @@ const PostUpdate = () => {
     }
     getcategoriesData();
   }, []);
-  // USEHOOK
-  const {
-    handleDeleteImage,
-    handleSelectImage,
-    image,
-    progress,
-    handleResetUpload,
-  } = useFirebaseImage(setValue, getValues, imageName, deletePostImage);
-  const updatePostHandler = (values) => {
-    console.log(values);
+  useEffect(() => {
+    setImage(imageUrl);
+  }, [imageUrl, setImage]);
+
+  const updatePostHandler = async (values) => {
+    if (!isValid) return;
+    // if (userInfo?.role !== userRole.ADMIN) {
+    //   Swal.fire("Failed", "You have no right to do this action", "warning");
+    //   return;
+    // }
+    const docRef = doc(db, "posts", postId);
+    values.status = Number(values.status);
+    values.slug = slugify(values.slug || values.title, { lower: true });
+    await updateDoc(docRef, {
+      ...values,
+      image,
+      content,
+    });
+    toast.success("Update post successfully!");
   };
+
+  const modules = useMemo(
+    () => ({
+      toolbar: [
+        ["bold", "italic", "underline", "strike"],
+        ["blockquote"],
+        [{ header: 1 }, { header: 2 }], // custom button values
+        [{ list: "ordered" }, { list: "bullet" }],
+        [{ header: [1, 2, 3, 4, 5, 6, false] }],
+        ["link", "image"],
+      ],
+      imageUploader: {
+        upload: async (file) => {
+          console.log("upload: ~ file", file);
+          const bodyFormData = new FormData();
+          console.log("upload: ~ bodyFormData", bodyFormData);
+          bodyFormData.append("image", file);
+          const response = await axios({
+            method: "post",
+            url: imgbbAPI,
+            data: bodyFormData,
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          });
+          return response.data.data.url;
+        },
+      },
+    }),
+    []
+  );
+
   const handleClickOption = async (item) => {
     const colRef = doc(db, "categories", item.id);
     const docData = await getDoc(colRef);
@@ -102,7 +155,7 @@ const PostUpdate = () => {
 
     setSelectCategory(item);
   };
-  if (!postId) return;
+  if (!postId) return null;
   return (
     <div>
       <DashboardHeading
@@ -136,7 +189,7 @@ const PostUpdate = () => {
               onChange={handleSelectImage}
               className="h-[250px]"
               progress={progress}
-              image={imageUrl}
+              image={image}
             ></ImageUpload>
           </Field>
           <Field>
@@ -168,6 +221,19 @@ const PostUpdate = () => {
           <Field>
             <Label>Author</Label>
             <Input control={control} placeholder="Find the author"></Input>
+          </Field>
+        </div>
+        <div className="mb-10 entry-content">
+          <Field>
+            <Label>Content</Label>
+            <div className="w-full">
+              <ReactQuill
+                theme="snow"
+                value={content}
+                modules={modules}
+                onChange={setContent}
+              />
+            </div>
           </Field>
         </div>
         <div className="grid grid-cols-2 mb-10 gap-x-10">
@@ -214,10 +280,10 @@ const PostUpdate = () => {
         <Button
           type="submit"
           className="mx-auto w-[250px]"
-          isLoading={loading}
-          disablede={loading}
+          isLoading={isSubmitting}
+          disablede={isSubmitting}
         >
-          Add new post
+          Update post
         </Button>
       </form>
     </div>
