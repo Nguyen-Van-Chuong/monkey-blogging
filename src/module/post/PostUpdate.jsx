@@ -6,7 +6,7 @@ import { Field } from "components/field";
 import { imgbbAPI } from "config/apiConfig";
 import { Input } from "components/input";
 import { Label } from "components/label";
-import { postStatus } from "utils/constants";
+import { postStatus, userRole } from "utils/constants";
 import { Radio } from "components/checkbox";
 import { toast } from "react-toastify";
 import { useEffect, useMemo } from "react";
@@ -32,6 +32,7 @@ import {
   where,
 } from "firebase/firestore";
 import ImageUploader from "quill-image-uploader";
+import { useAuth } from "contexts/auth-context";
 Quill.register("modules/imageUploader", ImageUploader);
 
 const PostUpdate = () => {
@@ -65,6 +66,7 @@ const PostUpdate = () => {
   // USEHOOK
   const { handleDeleteImage, handleSelectImage, setImage, image, progress } =
     useFirebaseImage(setValue, getValues, imageName, deletePostImage);
+  const { userInfo } = useAuth();
   // USEFFECT
   useEffect(() => {
     if (!postId) return;
@@ -99,10 +101,10 @@ const PostUpdate = () => {
 
   const updatePostHandler = async (values) => {
     if (!isValid) return;
-    // if (userInfo?.role !== userRole.ADMIN) {
-    //   Swal.fire("Failed", "You have no right to do this action", "warning");
-    //   return;
-    // }
+    if (Number(userInfo?.role) !== userRole.ADMIN) {
+      Swal.fire("Failed", "You have no right to do this action", "warning");
+      return;
+    }
     const docRef = doc(db, "posts", postId);
     values.status = Number(values.status);
     values.slug = slugify(values.slug || values.title, { lower: true });

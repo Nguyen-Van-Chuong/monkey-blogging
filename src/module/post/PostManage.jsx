@@ -1,9 +1,15 @@
 import { ActionDelete, ActionEdit, ActionView } from "components/action";
 import { Button } from "components/button";
+import { db } from "firebase-app/firebase-config";
+import { debounce } from "lodash";
 import { LabelStatus } from "components/label";
 import { Pagination } from "components/pagination";
+import { postStatus, userRole } from "utils/constants";
 import { Table } from "components/table";
-import { db } from "firebase-app/firebase-config";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import Swal from "sweetalert2";
 import {
   collection,
   deleteDoc,
@@ -15,16 +21,10 @@ import {
   startAfter,
   where,
 } from "firebase/firestore";
-import { debounce } from "lodash";
-import { useEffect } from "react";
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
-import { postStatus } from "utils/constants";
-const POST_PER_PAGE = 1;
+import { useAuth } from "contexts/auth-context";
+const POST_PER_PAGE = 10;
 const PostManage = () => {
   const [postList, setPostList] = useState([]);
-  console.log("🚀 --> PostManage --> postList:", postList);
   const [filter, setFilter] = useState("");
   const [lastDoc, setlastDoc] = useState();
   const [total, setTotal] = useState(0);
@@ -126,6 +126,13 @@ const PostManage = () => {
       setPostList([...postList, ...results]);
     });
   };
+  const { userInfo } = useAuth();
+  console.log(userInfo.role);
+  if (
+    Number(userInfo.role) !== userRole.ADMIN &&
+    Number(userInfo.role) !== userRole.MOD
+  )
+    return null;
 
   return (
     <div>

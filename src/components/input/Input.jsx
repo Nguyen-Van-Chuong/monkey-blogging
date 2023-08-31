@@ -56,9 +56,10 @@ const Input = ({
   );
 };
 Input.prototypes = {
-  name: PropTypes.string,
+  name: PropTypes.string.isRequired,
   hasIcon: PropTypes.bool,
-  children: PropTypes.node,
+  children: PropTypes.any,
   type: PropTypes.string,
+  control: PropTypes.any.isRequired,
 };
 export default Input;

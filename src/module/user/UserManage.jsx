@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import UserTable from "./UserTable";
 import { Button } from "components/button";
 import { debounce } from "lodash";
+import { useAuth } from "contexts/auth-context";
+import { userRole } from "utils/constants";
 
 const UserManage = () => {
   const [filter, setFilter] = useState("");
@@ -13,6 +15,8 @@ const UserManage = () => {
   useEffect(() => {
     document.title = "Mokey blogging - User";
   }, []);
+  const { userInfo } = useAuth();
+  if (Number(userInfo.role) !== userRole.ADMIN) return null;
   return (
     <div>
       <DashboardHeading

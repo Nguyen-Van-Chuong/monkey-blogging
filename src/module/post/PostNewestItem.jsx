@@ -4,6 +4,7 @@ import PostCategory from "./PostCategory";
 import PostTitle from "./PostTitle";
 import PostMeta from "./PostMeta";
 import PostImage from "./PostImage";
+import slugify from "slugify";
 const PostNewestItemStyles = styled.div`
   display: flex;
   align-items: center;
@@ -38,20 +39,27 @@ const PostNewestItemStyles = styled.div`
     }
   }
 `;
-const PostNewestItem = () => {
+const PostNewestItem = ({ data }) => {
+  const date = data?.createdAt?.seconds
+    ? new Date(data?.createdAt?.seconds * 1000)
+    : new Date();
+  const formatDate = new Date(date).toLocaleDateString("vi-VI");
+  const { category, user } = data;
+  if (!data) return null;
   return (
     <PostNewestItemStyles>
-      <PostImage
-        url="https://images.unsplash.com/photo-1510519138101-570d1dca3d66?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2294&q=80"
-        to={"/"}
-      ></PostImage>
+      <PostImage url={data?.image} alt="" to={data?.slug}></PostImage>
 
       <div className="post-content">
-        <PostCategory type="secondary">Kiến thức</PostCategory>
-        <PostTitle>
-          Hướng dẫn setup phòng cực chill dành cho người mới toàn tập
-        </PostTitle>
-        <PostMeta></PostMeta>
+        <PostCategory to={data?.category?.slug}>
+          {data?.category?.name}
+        </PostCategory>
+        <PostTitle size="big">{data?.title}</PostTitle>
+        <PostMeta
+          to={slugify(user?.username || "", { lower: true })}
+          authorName={user?.fullname}
+          date={formatDate}
+        ></PostMeta>
       </div>
     </PostNewestItemStyles>
   );

@@ -35,8 +35,8 @@ const HomeNewest = () => {
     const queries = query(
       colRef,
       where("status", "==", 1),
-      where("hot", "==", true),
-      limit(3)
+      where("hot", "==", false),
+      limit(4)
     );
     onSnapshot(queries, (snapshot) => {
       const results = [];
@@ -49,25 +49,30 @@ const HomeNewest = () => {
       setPosts(results);
     });
   }, []);
+  const [first, ...other] = posts;
   if (posts.length <= 0) return null;
   return (
     <HomeNewestStyles className="home-block">
       <div className="container">
         <Heading>Mới nhất</Heading>
         <div className="layout">
-          <PostNewestLarge></PostNewestLarge>
+          <PostNewestLarge data={first}></PostNewestLarge>
           <div className="sidebar">
-            <PostNewestItem></PostNewestItem>
-            <PostNewestItem></PostNewestItem>
-            <PostNewestItem></PostNewestItem>
+            {other.length > 0 &&
+              other.map((item) => (
+                <PostNewestItem key={item.id} data={item}></PostNewestItem>
+              ))}
+
+            {/* <PostNewestItem></PostNewestItem>
+            <PostNewestItem></PostNewestItem> */}
           </div>
         </div>
-        <div className="grid-layout grid-layout--primary">
+        {/* <div className="grid-layout grid-layout--primary">
           <PostItem></PostItem>
           <PostItem></PostItem>
           <PostItem></PostItem>
           <PostItem></PostItem>
-        </div>
+        </div> */}
       </div>
     </HomeNewestStyles>
   );

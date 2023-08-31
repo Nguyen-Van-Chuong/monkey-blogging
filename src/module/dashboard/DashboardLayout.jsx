@@ -5,6 +5,7 @@ import DashboardHeader from "./DashboardHeader";
 import Sidebar from "./Sidebar";
 import { useAuth } from "contexts/auth-context";
 import PageNotFound from "pages/PageNotFound";
+import { userRole } from "utils/constants";
 const DashboardStyles = styled.div`
   max-width: 1600px;
   margin: 0 auto;
@@ -27,7 +28,11 @@ const DashboardStyles = styled.div`
 `;
 const DashboardLayout = ({ children }) => {
   const { userInfo } = useAuth();
-  if (!userInfo) return <PageNotFound />;
+  if (
+    Number(userInfo.role) !== userRole.ADMIN &&
+    Number(userInfo.role) !== userRole.MOD
+  )
+    return <PageNotFound />;
   return (
     <DashboardStyles>
       <DashboardHeader></DashboardHeader>
