@@ -10,13 +10,14 @@ import NotFoundPage from "pages/NotFoundPage";
 import PostAddNew from "module/post/PostAddNew";
 import PostDetailsPage from "pages/PostDetailsPage";
 import PostManage from "module/post/PostManage";
+import PostUpdate from "module/post/PostUpdate";
 import SignInPage from "pages/SignInPage";
 import SignUpPage from "./pages/SignUpPage";
 import UserAddNew from "module/user/UserAddNew";
 import UserManage from "module/user/UserManage";
 import UserProfile from "module/user/UserProfile";
 import UserUpdate from "module/user/UserUpdate";
-import PostUpdate from "module/post/PostUpdate";
+import CategoryPage from "pages/CategoryPage";
 
 function App() {
   return (
@@ -27,6 +28,10 @@ function App() {
           <Route path="/sign-up" element={<SignUpPage />}></Route>
           <Route path="/sign-in" element={<SignInPage />}></Route>
           <Route path="*" element={<NotFoundPage />}></Route>
+          <Route
+            path="category/:slug"
+            element={<CategoryPage></CategoryPage>}
+          ></Route>
           <Route
             path="/:slug"
             element={<PostDetailsPage></PostDetailsPage>}

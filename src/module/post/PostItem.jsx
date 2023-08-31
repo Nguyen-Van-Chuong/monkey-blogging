@@ -4,6 +4,7 @@ import PostCategory from "./PostCategory";
 import PostTitle from "./PostTitle";
 import PostMeta from "./PostMeta";
 import PostImage from "./PostImage";
+import slugify from "slugify";
 const PostItemStyles = styled.div`
   display: flex;
   flex-direction: column;
@@ -27,18 +28,27 @@ const PostItemStyles = styled.div`
   }
 `;
 
-const PostItem = () => {
+const PostItem = ({ data }) => {
+  if (!data) return null;
+  const date = data?.createdAt?.seconds
+    ? new Date(data?.createdAt?.seconds * 1000)
+    : new Date();
+  const formatDate = new Date(date).toLocaleDateString("vi-VI");
+  const { category, user } = data;
   return (
     <PostItemStyles>
-      <PostImage
-        url="https://images.unsplash.com/photo-1570993492881-25240ce854f4?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2290&q=80"
-        to={"/"}
-      ></PostImage>
-      <PostCategory>Kiến Thusx</PostCategory>
-      <PostTitle size="normal">
-        Hướng dẫn setup phòng cực chill dành cho người mới toàn tập
+      <PostImage url={data.image} to={`/${data.slug}`}></PostImage>
+      <PostCategory to={data.category?.slug}>
+        {data?.category?.name}
+      </PostCategory>
+      <PostTitle size="normal" to={data.slug}>
+        {data.title}
       </PostTitle>
-      <PostMeta></PostMeta>
+      <PostMeta
+        to={slugify(user?.username || "", { lower: true })}
+        authorName={user?.fullname}
+        date={formatDate}
+      ></PostMeta>
     </PostItemStyles>
   );
 };
